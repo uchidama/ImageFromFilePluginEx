@@ -1,4 +1,5 @@
 # ImageFromFilePluginEx
+[![Image from Gyazo](https://i.gyazo.com/37c139610aae478c2f5118a08763c997.jpg)](https://gyazo.com/37c139610aae478c2f5118a08763c997)
 Drawing image from file on vst plugin by juce.
 
 
