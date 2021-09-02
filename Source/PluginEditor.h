@@ -24,6 +24,9 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    void openButtonClicked();
+    void clearButtonClicked();
+    
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -32,5 +35,9 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ImageFromFilePluginExAudioProcessorEditor)
 
     juce::Image background;
+    juce::TextButton openButton;
+    juce::TextButton clearButton;
+
+    std::unique_ptr<juce::FileChooser> chooser;
 
 };
