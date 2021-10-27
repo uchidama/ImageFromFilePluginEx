@@ -34,10 +34,14 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ImageFromFilePluginExAudioProcessorEditor)
 
-    juce::Image background;
     juce::TextButton openButton;
     juce::TextButton clearButton;
 
     std::unique_ptr<juce::FileChooser> chooser;
 
+    int paint_count;
+    // File Log
+    juce::File m_log_file;
+    juce::FileLogger m_logger;
+    
 };

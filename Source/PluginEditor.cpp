@@ -11,8 +11,13 @@
 
 //==============================================================================
 ImageFromFilePluginExAudioProcessorEditor::ImageFromFilePluginExAudioProcessorEditor (ImageFromFilePluginExAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), 
+        audioProcessor (p),
+        m_log_file("~/log_test_editor.txt"), 
+        m_logger(m_log_file,"Welcome to the log processor",0)
 {
+    juce::Logger::setCurrentLogger(&m_logger);    
+
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     setSize (640, 480);
@@ -25,6 +30,7 @@ ImageFromFilePluginExAudioProcessorEditor::ImageFromFilePluginExAudioProcessorEd
     clearButton.setButtonText ("Clear");
     clearButton.onClick = [this] { clearButtonClicked(); };
     
+    paint_count = 0;
 }
 
 ImageFromFilePluginExAudioProcessorEditor::~ImageFromFilePluginExAudioProcessorEditor()
@@ -34,7 +40,7 @@ ImageFromFilePluginExAudioProcessorEditor::~ImageFromFilePluginExAudioProcessorE
 void ImageFromFilePluginExAudioProcessorEditor::clearButtonClicked()
 {
     const juce::Rectangle<int> area(0,0,640,480);
-    background.clear(area);
+    audioProcessor.background.clear(area);
     
     this->repaint();
 }
@@ -53,7 +59,7 @@ void ImageFromFilePluginExAudioProcessorEditor::openButtonClicked()
 
         if (file != juce::File{})                                                      
         {
-            background = juce::ImageFileFormat::loadFrom(file);
+            audioProcessor.background = juce::ImageFileFormat::loadFrom(file);
             this->repaint();
         }
     });
@@ -62,11 +68,19 @@ void ImageFromFilePluginExAudioProcessorEditor::openButtonClicked()
 //==============================================================================
 void ImageFromFilePluginExAudioProcessorEditor::paint (juce::Graphics& g)
 {
+    /*
+    juce::String message;
+    message << "paint " << paint_count;
+    juce::Logger::getCurrentLogger()->writeToLog (message);
+    */
+    
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
     g.setColour (juce::Colours::white);
-    g.drawImageAt(background, 0, 0);
+    g.drawImageAt(audioProcessor.background, 0, 0);
+    
+    ++paint_count;
 }
 
 void ImageFromFilePluginExAudioProcessorEditor::resized()

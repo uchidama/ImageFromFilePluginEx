@@ -53,7 +53,16 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    juce::Image background;
+    
 private:
     //==============================================================================
+    juce::AudioProcessorValueTreeState parameters;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ImageFromFilePluginExAudioProcessor)
+
+    // File Log
+    juce::File m_log_file;
+    juce::FileLogger m_logger;
+
 };

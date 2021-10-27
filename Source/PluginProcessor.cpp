@@ -9,6 +9,13 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+
+struct ImageBinary{
+    int width;
+    int height;
+    juce::Colour data;
+};
+
 //==============================================================================
 ImageFromFilePluginExAudioProcessor::ImageFromFilePluginExAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -19,9 +26,22 @@ ImageFromFilePluginExAudioProcessor::ImageFromFilePluginExAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ),
+                m_log_file("~/log_test_processor.txt"), 
+                m_logger(m_log_file,"Welcome to the log processor",0),
+                parameters (*this, nullptr, juce::Identifier ("APVTSTutorial"),
+                {
+                    std::make_unique<juce::AudioParameterInt> (
+                                                                 "fxKickFreq",       // parameterID
+                                                                 "FxKick Freq",    // parameter name
+                                                                 1,              // minimum value
+                                                                 511,              // maximum value
+                                                                 384),             // default value
+
+                })
 #endif
 {
+    //juce::Logger::setCurrentLogger(&m_logger);    
 }
 
 ImageFromFilePluginExAudioProcessor::~ImageFromFilePluginExAudioProcessor()
@@ -175,12 +195,82 @@ void ImageFromFilePluginExAudioProcessor::getStateInformation (juce::MemoryBlock
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+        
+    // image to bin
+    size_t image_bin_size = sizeof(int) + sizeof(int) + background.getWidth() * background.getHeight() * sizeof(juce::Colour);
+    
+    juce::MemoryBlock imgBlock(image_bin_size);
+    ImageBinary * bin = reinterpret_cast<ImageBinary *>(imgBlock.getData());
+    bin->width = background.getWidth();
+    bin->height = background.getHeight();
+    
+    juce::Colour * p = &bin->data;
+    
+    juce::String message;
+    message << "image_bin_size " << image_bin_size;
+    juce::Logger::getCurrentLogger()->writeToLog (message);
+    
+    int i = 0;
+    for(int y = 0; y < bin->height; ++y){
+        for(int x = 0; x < bin->width; ++x){
+            
+            /*
+            juce::String text;
+            text << "p_set " << i;
+            juce::Logger::getCurrentLogger()->writeToLog (text);
+            
+            ++i;
+            */
+            
+            (*p) = background.getPixelAt(x,y);
+            ++p;
+
+        }
+    }
+    
+    // bin to str
+    
+    auto state = parameters.copyState();    ///< return ValueTree
+    juce::ValueTree imgVal( juce::Identifier("image") );
+    imgVal.setProperty("image", juce::var(imgBlock.toBase64Encoding()), nullptr);
+    
+    state.addChild(imgVal, 0, nullptr);
+    std::unique_ptr<juce::XmlElement> xml (state.createXml());
+    copyXmlToBinary (*xml, destData);
+
 }
 
 void ImageFromFilePluginExAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
+
+    if (xmlState.get() != nullptr){
+        if (xmlState->hasTagName (parameters.state.getType()))
+            parameters.replaceState (juce::ValueTree::fromXml (*xmlState));
+        
+        juce::XmlElement * child = xmlState->getFirstChildElement();
+        if (child->hasTagName ("image")){
+            juce::MemoryBlock imgBlock;
+            imgBlock.fromBase64Encoding(child->getStringAttribute("image"));
+            
+            // MemoryBlock to ImageBinary to Image;
+            ImageBinary * bin = reinterpret_cast<ImageBinary *>(imgBlock.getData());
+            juce::Image img(juce::Image::PixelFormat::RGB, bin->width, bin->height, true);
+            juce::Colour * p = &bin->data;
+
+            for(int y = 0; y < bin->height; ++y){
+                for(int x = 0; x < bin->width; ++x){
+                    img.setPixelAt(x, y, (*p));
+                    ++p;
+                }
+            }
+
+            background = img;
+        }
+
+    }
 }
 
 //==============================================================================
