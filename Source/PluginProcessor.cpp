@@ -13,6 +13,7 @@
 struct ImageBinary{
     int width;
     int height;
+    juce::Image::PixelFormat pixelFormat;
     juce::Colour data;
 };
 
@@ -197,13 +198,13 @@ void ImageFromFilePluginExAudioProcessor::getStateInformation (juce::MemoryBlock
     // as intermediaries to make it easy to save and load complex data.
         
     // image to bin
-    size_t image_bin_size = sizeof(int) + sizeof(int) + background.getWidth() * background.getHeight() * sizeof(juce::Colour);
+    size_t image_bin_size = sizeof(ImageBinary) - sizeof(juce::Colour) + background.getWidth() * background.getHeight() * sizeof(juce::Colour);
     
     juce::MemoryBlock imgBlock(image_bin_size);
     ImageBinary * bin = reinterpret_cast<ImageBinary *>(imgBlock.getData());
     bin->width = background.getWidth();
     bin->height = background.getHeight();
-    
+    bin->pixelFormat = background.getFormat();
     juce::Colour * p = &bin->data;
     
     juce::String message;
@@ -255,9 +256,9 @@ void ImageFromFilePluginExAudioProcessor::setStateInformation (const void* data,
             juce::MemoryBlock imgBlock;
             imgBlock.fromBase64Encoding(child->getStringAttribute("image"));
             
-            // MemoryBlock to ImageBinary to Image;
+            // MemoryBlock to ImageBinary to Image
             ImageBinary * bin = reinterpret_cast<ImageBinary *>(imgBlock.getData());
-            juce::Image img(juce::Image::PixelFormat::RGB, bin->width, bin->height, true);
+            juce::Image img(bin->pixelFormat, bin->width, bin->height, true);
             juce::Colour * p = &bin->data;
 
             for(int y = 0; y < bin->height; ++y){
