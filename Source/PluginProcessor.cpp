@@ -232,8 +232,9 @@ void ImageFromFilePluginExAudioProcessor::getStateInformation (juce::MemoryBlock
     // bin to str
     
     auto state = parameters.copyState();    ///< return ValueTree
-    juce::ValueTree imgVal( juce::Identifier("image") );
-    imgVal.setProperty("image", juce::var(imgBlock.toBase64Encoding()), nullptr);
+    juce::Identifier ident("image");
+    juce::ValueTree imgVal(ident);
+    imgVal.setProperty(ident, juce::var(imgBlock.toBase64Encoding()), nullptr);
     
     state.addChild(imgVal, 0, nullptr);
     std::unique_ptr<juce::XmlElement> xml (state.createXml());
