@@ -11,3 +11,4 @@ Drawing jpg or png file on vst plugin by juce.
  * [Loading audio files from BinaryData (JUCE/C++)](https://gist.github.com/jatinchowdhury18/542af47196d1ba13c469d34b803a1194)  
  * [Load an image and draw it, but how?](https://forum.juce.com/t/load-an-image-and-draw-it-but-how/10540/2)  
  * [Tutorial: Build an audio player](https://docs.juce.com/master/tutorial_playing_sound_files.html)  
+ * [Mixing Xml and Binary data in MemoryBlock for Saving Plug-in Info](https://forum.juce.com/t/mixing-xml-and-binary-data-in-memoryblock-for-saving-plug-in-info/12728)  
